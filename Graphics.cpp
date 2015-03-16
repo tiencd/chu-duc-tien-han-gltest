@@ -292,7 +292,7 @@ void DrawRetangle(int x, int y, int w, int h, D3DCOLOR color) {
 	d3dDevice->Clear(0, &rect, D3DCLEAR_TARGET, color, 1.0f, 0);
 }
 
-void DrawString(char * text, int x, int y, D3DCOLOR fontColor)
+void DrawString(char * text, int x, int y, int w, int h, D3DCOLOR fontColor)
 {
 
 	// Create a colour for the text - in this case blue
@@ -302,8 +302,8 @@ void DrawString(char * text, int x, int y, D3DCOLOR fontColor)
 	RECT rct;
 	rct.left=x;
 	rct.top=y;
-	rct.right=300;
-	rct.bottom=200;
+	rct.right= SCREEN_WIDTH ;
+	rct.bottom= SCREEN_HEIGHT;
 
 	// Draw some text 
 	//m_font->s

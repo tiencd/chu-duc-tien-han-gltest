@@ -21,7 +21,7 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
     //Make a window and initialize DirectX in windowed mode
     MakeWindow(hInstance);
     InitD3D (0, 0, D3DFMT_A8R8G8B8, hWnd, true);
-	curScreen.onInit();
+	curScreen.onStart();
 	
     //Main application loop
     while (bRunning)

@@ -6,12 +6,15 @@ GameScr::GameScr()
 {
 }
 
+int marginTop = 5, widthButton = 80, heightText = 20;
 void GameScr::onInit() {
 	level = 2;
+	texturePause.Init(imgPause, widthButton, widthButton);
+	texturePlay.Init(imgPlay, widthButton, widthButton);
 	string strTmp = imgItemDrop + to_string(ID_EGG_PNG) + ".png";
 	char *str =(char *)strTmp.c_str();
 	textureEgg.Init(str, 25, 27);
-	
+
 	strTmp = imgItemDrop + to_string(ID_SHIT_PNG) + ".png";
 	char *str1 =(char *)strTmp.c_str();
 	textureShit.Init(str1, 30, 30);
@@ -23,43 +26,48 @@ void GameScr::onInit() {
 	listItemDrop.clear();
 	basket = Object();
 	basket.setTexture(imgBasket, 120, 100);
-	basket.setXY((SCREEN_WIDTH - basket.getWidth()) << 1, SCREEN_HEIGHT - basket.getHeight() - 20);
+	basket.setXY((SCREEN_WIDTH - basket.getWidth()) << 1, SCREEN_HEIGHT - basket.getHeight() - 40);
 	addNewAnimal(rand()%TOTAL_TYPE_ANIMAL + 1);
-	/*addNewAnimal(rand()%TOTAL_TYPE_ANIMAL + 1);
 	addNewAnimal(rand()%TOTAL_TYPE_ANIMAL + 1);
-	addNewAnimal(rand()%TOTAL_TYPE_ANIMAL + 1);*/
+	addNewAnimal(rand()%TOTAL_TYPE_ANIMAL + 1);
+	addNewAnimal(rand()%TOTAL_TYPE_ANIMAL + 1);
 }
 
 void GameScr::onPaint() {
 	// paint score
-	DrawString("Score:", 5, 5,D3DCOLOR_ARGB(255,0,0,0));
+	if(gameState == isPause || gameState == isGameOver) {
+		texturePlay.Blit(SCREEN_WIDTH - widthButton, 0);
+		if(gameState == isGameOver) {
+			DrawString("GAME OVER", 370, marginTop, 150, heightText, D3DCOLOR_ARGB(255,255,0,0));
+		}
+	} else if(gameState == isPlaying) {
+		texturePause.Blit(SCREEN_WIDTH - widthButton, 0);
+	}
+	DrawString("Score:", 5, marginTop, 70, heightText, D3DCOLOR_ARGB(255,0,0,0));
 	string strTmp = to_string(scoreEat) + "";
 	char* sScore = (char *)strTmp.c_str();
-	DrawString(sScore, 73, 5,D3DCOLOR_ARGB(255,50,2,255));
+	DrawString(sScore, 73, marginTop, 50, heightText, D3DCOLOR_ARGB(255,50,2,255));
 	// paint score drop egg
-	textureEgg.Blit(130, 5);
+	textureEgg.Blit(130, marginTop);
 	strTmp = to_string(scoreDropEggs) + "";
 	char* sScore1 = (char *)strTmp.c_str();
-	DrawString(sScore1, 160, 5,D3DCOLOR_ARGB(255,255,2,62));
+	DrawString(sScore1, 160, marginTop, 30, heightText, D3DCOLOR_ARGB(255,255,2,62));
 	// paint score eat shit
-	textureShit.Blit(200, 5);
+	textureShit.Blit(200, marginTop);
 	strTmp = to_string(scoreEatShit) + "";
 	char* sScore2 = (char *)strTmp.c_str();
-	DrawString(sScore2, 230, 5,D3DCOLOR_ARGB(255,255,2,62));
+	DrawString(sScore2, 230, marginTop, 30, heightText, D3DCOLOR_ARGB(255,255,2,62));
 
 	list<Animal>::iterator iter_name; // Khai báo con trỏ để duyệt
 	for (iter_name = listAnimal.begin(); iter_name != listAnimal.end(); iter_name++) {
 		(*iter_name).onPaint();
 	}
-	
+
 	list<ItemDrop>::iterator iter_name2; // Khai báo con trỏ để duyệt
 	for (iter_name2 = listItemDrop.begin(); iter_name2 != listItemDrop.end(); iter_name2++) {
 		(*iter_name2).onPaint();
 	}
 	basket.onPaint();
-	if(gameState == isGameOver) {
-		DrawRetangle(100, 200, 300, 200, D3DCOLOR_ARGB(255,255,2,62));
-	}
 }
 
 void GameScr::onUpdate() {
@@ -74,11 +82,11 @@ void GameScr::onUpdate() {
 				ItemDrop itemDrop = ItemDrop(type + 1, 
 					(*iter_name).getX() +(*iter_name).getWidth() / 2, 
 					(*iter_name).getY() + (*iter_name).getHeight() / 2, level);
-			
+
 				listItemDrop.push_back(itemDrop);
 			}
 		}
-	
+
 		list<ItemDrop>::iterator iter_name2; // Khai báo con trỏ để duyệt
 		for (iter_name2 = listItemDrop.begin(); iter_name2 != listItemDrop.end(); iter_name2++) {
 			(*iter_name2).onUpdate();
@@ -89,6 +97,9 @@ void GameScr::onUpdate() {
 				}
 				if(iter_name2 != --listItemDrop.end()) {
 					listItemDrop.erase(iter_name2++);
+				} else {
+					listItemDrop.erase(iter_name2);
+					break;
 				}
 			}
 		}
@@ -98,7 +109,7 @@ void GameScr::onUpdate() {
 
 bool GameScr::onCheckGameOver() {
 
-	if(scoreDropEggs >= 3 || scoreEatShit >= 3) {
+	if(scoreDropEggs >= TOTAL_MAX_DROP_EDD || scoreEatShit >= TOTAL_MAX_EAT_SHIT) {
 		onGameOver();
 		return true;
 	}
@@ -116,11 +127,11 @@ void GameScr::onCheckEat() {
 		int y1 = basket.getY();
 		int w1 = basket.getWidth();
 		int h1 = basket.getHeight();
-		if(x0 + w0> x1 + 20 && x0 + 30 < x1 + w1 && y0 + h0 > y1 + 40 && y0 - 20 < y1 + h1) {
+		if(x0 + w0> x1 + 20 && x0 + 30 < x1 + w1 && y0 + h0 > y1 + 40 && y0 + 60 < y1 + h1) {
 			// la trứng thì cộng điểm
 			if((*iter_name2).getTypeItem() == ID_EGG_PNG) {
 				scoreEat ++;
-				if(scoreEat % 20 == 0) {
+				if(scoreEat % NUM_EGG_EAT_NEXT_LEVEL == 0) {
 					level++;
 				}
 			} else {
@@ -129,6 +140,9 @@ void GameScr::onCheckEat() {
 			(*iter_name2).onDestroy();
 			if(iter_name2 != --listItemDrop.end()) {
 				listItemDrop.erase(iter_name2++);
+			} else {
+				listItemDrop.erase(iter_name2);
+				break;
 			}
 		}
 	}
@@ -137,9 +151,9 @@ void GameScr::onCheckEat() {
 void GameScr::WindowProcedure (HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam) {
 	POINTS coords; //Mouse coords
 	int xOlder = 0;
-    //Check message
-    switch(uMessage)
-    {
+	//Check message
+	switch(uMessage)
+	{
 	case WM_KEYDOWN:
 		{
 			switch (wParam) {
@@ -179,9 +193,9 @@ void GameScr::WindowProcedure (HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM l
 			}
 			break;
 		}
-    case WM_MOUSEMOVE:
-        //Get mouse coords
-        coords = MAKEPOINTS (lParam);
+	case WM_MOUSEMOVE:
+		//Get mouse coords
+		coords = MAKEPOINTS (lParam);
 		if(gameState == isPlaying) {
 			if(coords.x < (SCREEN_WIDTH - basket.getWidth())) {
 				basket.setX(coords.x);
@@ -189,31 +203,40 @@ void GameScr::WindowProcedure (HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM l
 				basket.setX(SCREEN_WIDTH - basket.getWidth());
 			}
 		}
-        break;
+		break;
 
-    case WM_LBUTTONDOWN:
-        //Get mouse coords
-        coords = MAKEPOINTS (lParam);
-        if(gameState == isGameOver) {
+	case WM_LBUTTONDOWN:
+		//Get mouse coords
+		coords = MAKEPOINTS (lParam);
+		if(gameState == isGameOver) {
 			onStart();
 		}
-        break;	
+		break;	
 
-    case WM_LBUTTONUP:
-        //Get mouse coords
-        coords = MAKEPOINTS (lParam);
-        break;
+	case WM_LBUTTONUP:
+		//Get mouse coords
+		coords = MAKEPOINTS (lParam);
+		if(coords.x > (SCREEN_WIDTH - widthButton) && coords.x < SCREEN_WIDTH && coords.y < widthButton) {
+				if(gameState == isPause) {
+					onResume();
+				} else if(gameState == isPlaying) {
+					onPause();
+				} else if(gameState == isGameOver) {
+					onStart();
+				}
+		}
+		break;
 
-    case WM_RBUTTONDOWN:
-        //Get mouse coords
-        coords = MAKEPOINTS (lParam);
-        break;
+	case WM_RBUTTONDOWN:
+		//Get mouse coords
+		coords = MAKEPOINTS (lParam);
+		break;
 
-    case WM_RBUTTONUP:
-        //Get mouse coords
-        coords = MAKEPOINTS (lParam);
-        break;	
-    }
+	case WM_RBUTTONUP:
+		//Get mouse coords
+		coords = MAKEPOINTS (lParam);
+		break;	
+	}
 }
 
 void GameScr::addNewAnimal(int type) {
@@ -236,7 +259,7 @@ void GameScr::onPause() {
 
 void GameScr::onGameOver() {
 	if(gameState != isGameOver) {
-		 MessageBox(NULL, "Game over. De choi lai, ban chon bat ky vao man hinh hoac bam phim Space (phim cach)", "GameOver", MB_OK);
+		MessageBox(NULL, "Game over. De choi lai, ban chon bat ky vao man hinh hoac bam phim Space (phim cach)", "GameOver", MB_OK);
 		super::onGameOver();
 	}
 }

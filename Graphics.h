@@ -15,6 +15,7 @@
 #include <windows.h>
 #include <d3d9.h>
 #include <d3dx9.h>
+#include "Constrain.h"
 
 //Custom vertex format
 const DWORD D3DFVF_TLVERTEX = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1;
@@ -62,7 +63,7 @@ IDirect3DTexture9 *LoadTexture(char *fileName);
 void DrawRetangle(int x, int y, int w, int h, D3DCOLOR color);
 
 //Draw text
-void DrawString(char *text, int x, int y, D3DCOLOR fontColor);
+void DrawString(char *text, int x, int y, int w, int h, D3DCOLOR fontColor);
 
 //Draw a textured quad on the back-buffer
 void BlitD3D (IDirect3DTexture9* texture, RECT* rDest, float rotate = 0);

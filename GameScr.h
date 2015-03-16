@@ -28,6 +28,7 @@ class GameScr : public Screen
 		list<Animal> listAnimal;
 		list<ItemDrop> listItemDrop;
 		CTexture textureEgg, textureShit;
+		CTexture texturePause, texturePlay;
 		int level;
 		int scoreEat;
 		int scoreDropEggs, scoreEatShit;

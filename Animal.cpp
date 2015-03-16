@@ -50,7 +50,7 @@ void Animal::onUpdate() {
 
 bool Animal::onPorm() {
 	double timeSeconds = Utils::getTimeToSeconds();
-	if(timeSeconds - this->timeSeconds >= 5) {
+	if(timeSeconds - this->timeSeconds >= TIME_ANIMAL_PORN) {
 		this->timeSeconds = timeSeconds;
 		return true;
 	}
