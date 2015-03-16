@@ -1,6 +1,7 @@
 #include "Utils.h"
 #include <stdio.h> 
-
+#include <string>
+using namespace std;
 
 Utils::Utils()
 {
@@ -21,4 +22,9 @@ double Utils::getTimeToSeconds() {
 	printf ("%.f seconds since January 1, 2000 in the current timezone", seconds);
 
 	return seconds;
+}
+
+char* Utils::convertStringToCharArr(string str){
+	char *strTmp =(char *)str.c_str();
+	return strTmp;
 }

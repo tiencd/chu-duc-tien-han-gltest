@@ -2,8 +2,8 @@
 #include <string>
 using namespace std;
 
-#define SCREEN_WIDTH	450
-#define SCREEN_HEIGHT	600
+#define SCREEN_WIDTH	600
+#define SCREEN_HEIGHT	650
 #define TOTAL_TYPE_ANIMAL	3
 #define TOTAL_TYPE_ITEM_DROP	2
 // id cac loai dong vat

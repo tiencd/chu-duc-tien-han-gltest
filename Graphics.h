@@ -58,6 +58,9 @@ int EndDrawing ();
 //Load a texture
 IDirect3DTexture9 *LoadTexture(char *fileName);
 
+//Draw Retangle
+void DrawRetangle(int x, int y, int w, int h, D3DCOLOR color);
+
 //Draw text
 void DrawString(char *text, int x, int y, D3DCOLOR fontColor);
 

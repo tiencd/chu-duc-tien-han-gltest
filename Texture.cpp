@@ -28,12 +28,12 @@ int CTexture::Init (char sFilename[], int width, int height)
         return FALSE;
 
     //Convert filename to lowercase letters
-    sFilename = strlwr(sFilename);
-	string strTmp = sFilename + to_string(width) + "-" + to_string(height);
-	char *str =(char *)strTmp.c_str();
+    //sFilename = strlwr(sFilename);
+	//string strTmp = sFilename + to_string(width) + "-" + to_string(height);
+	//char *str =(char *)strTmp.c_str();
     //Check if texture is in the loaded list
     for (itTextures = loadedTextures.begin (); itTextures != loadedTextures.end (); itTextures++)
-        if ((*itTextures)->sFilename == str)
+        if ((*itTextures)->sFilename == sFilename)
         {   
             //Get LOADEDTEXTURE object
             texture = *itTextures;  
@@ -63,7 +63,7 @@ int CTexture::Init (char sFilename[], int width, int height)
 
         //Set new texture parameters
         newTexture->referenceCount = 1;
-        newTexture->sFilename = str;
+        newTexture->sFilename = sFilename;
 		if(width == 0 && height == 0) {
 			newTexture->width = surfaceDesc.Width;
 			newTexture->height = surfaceDesc.Height;

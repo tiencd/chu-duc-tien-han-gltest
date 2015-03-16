@@ -40,6 +40,7 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 		curScreen.onPaint();
         EndDrawing ();
         Present ();
+		curScreen.onCheckGameOver();
     }
 
     //Cleaup all loaded textures (1 in this case)
@@ -83,7 +84,7 @@ int MakeWindow (HINSTANCE hInstance)
     wc.hInstance = hInstance;
     wc.hIcon = NULL;
     wc.hCursor = NULL;
-    wc.hbrBackground = (HBRUSH) GetStockObject (BLACK_BRUSH);
+    wc.hbrBackground = (HBRUSH) GetStockObject (WHITE_BRUSH);
     wc.lpszMenuName = NULL;
     wc.lpszClassName = "Catching";
     wc.hIconSm = LoadIcon (hInstance, MAKEINTRESOURCE(5));  //IDI_MAINICON == 5
@@ -91,10 +92,21 @@ int MakeWindow (HINSTANCE hInstance)
     //Register class
     if(!RegisterClassEx(&wc))
         return false;
+	RECT desktop;
+   // Get a handle to the desktop window
+   const HWND hDesktop = GetDesktopWindow();
+   // Get the size of screen to the variable desktop
+   GetWindowRect(hDesktop, &desktop);
+   // The top left corner will have coordinates (0,0)
+   // and the bottom right corner will have coordinates
+   // (horizontal, vertical)
+   int horizontal = desktop.right;
+   int vertical = desktop.bottom;
 
     //Create window
     hWnd = CreateWindowEx (NULL, "Catching", "Catching Eggs",
-        WS_CAPTION | WS_VISIBLE | WS_SYSMENU, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT,
+        WS_CAPTION | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX, (horizontal - SCREEN_WIDTH) >> 1,
+		(vertical - SCREEN_HEIGHT) >> 1, SCREEN_WIDTH, SCREEN_HEIGHT,
         NULL, NULL, hInstance, NULL);
 
     //Make sure window was created properly

@@ -132,7 +132,7 @@ int InitD3D (int resWidth, int resHeight, D3DFORMAT resFormat, HWND hWnd, BOOL b
 
     //Setup Direct3D for rendering
     InitRendering (resWidth, resHeight);
-	D3DXCreateFont(d3dDevice, 40, 0, FW_BOLD, 0, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Arial"), &m_font );
+	D3DXCreateFont(d3dDevice, 26, 0, FW_BOLD, 0, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Arial"), &m_font );
     //Success
     return TRUE;
 }
@@ -253,7 +253,7 @@ int CloseD3D()
 
 
 //Clear backbuffer
-int ClearBuffer () { return d3dDevice->Clear(0, NULL, D3DCLEAR_TARGET, 255, 0.0f, 0); }
+int ClearBuffer () { return d3dDevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255,245,245,245), 0.0f, 0); }
 
 //Present
 int Present () { return d3dDevice->Present (NULL, NULL, NULL, NULL); }
@@ -285,6 +285,11 @@ IDirect3DTexture9 *LoadTexture(char *fileName)
 
 	//Return the newly made texture
     return d3dTexture;
+}
+
+void DrawRetangle(int x, int y, int w, int h, D3DCOLOR color) {
+	D3DRECT rect = {x, y, x + w, y + h};
+	d3dDevice->Clear(0, &rect, D3DCLEAR_TARGET, color, 1.0f, 0);
 }
 
 void DrawString(char * text, int x, int y, D3DCOLOR fontColor)

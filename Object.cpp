@@ -17,7 +17,7 @@ void Object::onUpdate() {}
 
 void Object::setTexture(char sFilename[], int width, int height) {
 	if(!this->texture.Init(sFilename, width, height)) {
-		MessageBox (NULL, "khong the load anh ", sFilename, MB_OK);
+		MessageBox (NULL, "khong the load anh ", (sFilename), MB_OK);
         return;
 	}
 }

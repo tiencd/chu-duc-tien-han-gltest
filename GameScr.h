@@ -4,20 +4,32 @@
 #include "Animal.h"
 #include "ItemDrop.h"
 #include <list>
+#include "Utils.h"
 
 class GameScr : public Screen
 {
 	public:
 		GameScr(void);
+		void WindowProcedure (HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam);
 		void onInit();
+		void addNewAnimal(int type);
 		void onPaint();
 		void onUpdate();
+		void onStart();
+		void onPause();
+		void onResume();
+		void onGameOver();
 		void onDestroy();
-		void addNewAnimal(int type);
-		void WindowProcedure (HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam);
+		bool onCheckGameOver();
 	private:
+		typedef Screen super;
+		void onCheckEat();
 		Object basket;
 		list<Animal> listAnimal;
 		list<ItemDrop> listItemDrop;
+		CTexture textureEgg, textureShit;
+		int level;
+		int scoreEat;
+		int scoreDropEggs, scoreEatShit;
 };
 

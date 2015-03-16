@@ -19,7 +19,12 @@ void ItemDrop::setSpeed(int speed) {
 void ItemDrop::setTypeItem(int typeItem) {
 	string strTmp = imgItemDrop + to_string(typeItem) + ".png";
 	char *str =(char *)strTmp.c_str();
+	this->typeItem = typeItem;
 	setTexture(str, 40, 45);
+}
+
+int ItemDrop::getTypeItem() {
+	return typeItem;
 }
 
 void ItemDrop::onPaint() {
@@ -27,7 +32,7 @@ void ItemDrop::onPaint() {
 }
 
 void ItemDrop::onUpdate() {
-	if(y < SCREEN_HEIGHT) {
+	if(y <= SCREEN_HEIGHT) {
 		y += speed;
 	}
 }
