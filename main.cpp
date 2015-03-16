@@ -18,11 +18,11 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
     MSG msg;
     //Start program execution
     bRunning = true;
-
     //Make a window and initialize DirectX in windowed mode
     MakeWindow(hInstance);
     InitD3D (0, 0, D3DFMT_A8R8G8B8, hWnd, true);
 	curScreen.onInit();
+	
     //Main application loop
     while (bRunning)
     {
@@ -41,6 +41,7 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
         EndDrawing ();
         Present ();
     }
+
     //Cleaup all loaded textures (1 in this case)
     CTexture::CleanupTextures ();
 
@@ -84,7 +85,7 @@ int MakeWindow (HINSTANCE hInstance)
     wc.hCursor = NULL;
     wc.hbrBackground = (HBRUSH) GetStockObject (BLACK_BRUSH);
     wc.lpszMenuName = NULL;
-    wc.lpszClassName = "Quads";
+    wc.lpszClassName = "Catching";
     wc.hIconSm = LoadIcon (hInstance, MAKEINTRESOURCE(5));  //IDI_MAINICON == 5
 
     //Register class
@@ -92,7 +93,7 @@ int MakeWindow (HINSTANCE hInstance)
         return false;
 
     //Create window
-    hWnd = CreateWindowEx (NULL, "Quads", "Textured Quads Demo -- Left-click to exit",
+    hWnd = CreateWindowEx (NULL, "Catching", "Catching Eggs",
         WS_CAPTION | WS_VISIBLE | WS_SYSMENU, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT,
         NULL, NULL, hInstance, NULL);
 

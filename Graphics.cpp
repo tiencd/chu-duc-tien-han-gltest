@@ -10,10 +10,15 @@
  *  the graphics code in for your own project.
  *
  *  Note that for brevity's sake, I removed most of my error-checking code from the functions
- *  here.
+ *  here. Also, initialization takes place over three functions: InitD3D(), InitRendering(), and
+ *  SetupQuad() in order to avoid having a single massive function.
  */
 
 #include "Graphics.h"
+#include <assert.h>
+#include <fstream>
+#include <sstream>
+using namespace std;
 
 //********************************
 //* Global Variables             *
@@ -34,6 +39,24 @@ D3DPRESENT_PARAMETERS d3dPresent;
 //Vertex buffer for drawing quads
 IDirect3DVertexBuffer9* vertexBuffer;
 
+//Vertex buffer and index buffer for batched drawing
+IDirect3DVertexBuffer9* vertexBatchBuffer;
+IDirect3DIndexBuffer9* indexBatchBuffer;
+
+//Max amount of vertices that can be put in the batching buffer
+const int BATCH_BUFFER_SIZE = 1000;
+
+//Vertices currently in the batching buffer
+int numBatchVertices;
+TLVERTEX* batchVertices;
+
+//Info on texture used for batched drawing
+float batchTexWidth;
+float batchTexHeight;
+
+// font image
+
+ ID3DXFont *m_font;
 
 //********************************
 //* Functions                    *
@@ -43,11 +66,8 @@ IDirect3DVertexBuffer9* vertexBuffer;
 int InitD3D (int resWidth, int resHeight, D3DFORMAT resFormat, HWND hWnd, BOOL bWindowedMode)
 {
     HRESULT hr;
-
-    //Make Direct3D object
+    //Create the D3D object
     d3d = Direct3DCreate9(D3D_SDK_VERSION);
-
-    //Make sure NULL pointer was not returned
     if (!d3d)
         return FALSE;
 
@@ -110,33 +130,113 @@ int InitD3D (int resWidth, int resHeight, D3DFORMAT resFormat, HWND hWnd, BOOL b
     if (FAILED(hr))
         return FALSE;
 
-    //Set vertex shader
+    //Setup Direct3D for rendering
+    InitRendering (resWidth, resHeight);
+	D3DXCreateFont(d3dDevice, 40, 0, FW_BOLD, 0, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Arial"), &m_font );
+    //Success
+    return TRUE;
+}
+
+
+//Setup Direct3D for rendering
+void InitRendering (int resWidth, int resHeight)
+{
+    D3DXMATRIX matOrtho;
+    D3DXMATRIX matIdentity;
+
+    //Setup an orthographic perspective
+    D3DXMatrixOrthoLH (&matOrtho, (float) resWidth, (float) resHeight, 1.0f, 10.0f);
+    D3DXMatrixIdentity (&matIdentity);
+    d3dDevice->SetTransform (D3DTS_PROJECTION, &matOrtho);
+    d3dDevice->SetTransform (D3DTS_VIEW, &matIdentity);
+    d3dDevice->SetTransform (D3DTS_WORLD, &matIdentity);
+    
+    //Create a vertex buffer and set stream source
+    d3dDevice->CreateVertexBuffer(4 * sizeof(TLVERTEX), D3DUSAGE_WRITEONLY,
+                                  D3DFVF_TLVERTEX, D3DPOOL_MANAGED, &vertexBuffer, NULL);
+    d3dDevice->SetStreamSource(0, vertexBuffer, 0, sizeof(TLVERTEX));
+
+    //Create batching vertex and index buffers
+    d3dDevice->CreateVertexBuffer(BATCH_BUFFER_SIZE * sizeof(TLVERTEX), D3DUSAGE_WRITEONLY,
+                                  D3DFVF_TLVERTEX, D3DPOOL_MANAGED, &vertexBatchBuffer, NULL);
+    d3dDevice->CreateIndexBuffer (BATCH_BUFFER_SIZE * 3, D3DUSAGE_WRITEONLY, D3DFMT_INDEX16,
+                                  D3DPOOL_MANAGED, &indexBatchBuffer, NULL);
+    d3dDevice->SetIndices(indexBatchBuffer);
+    numBatchVertices = 0;
+
+    //Fill the index buffer
+    FillIndexBuffer ();
+
+    //Setup vertex format
     d3dDevice->SetVertexShader(NULL);
     d3dDevice->SetFVF (D3DFVF_TLVERTEX);
 
-    //Create vertex buffer and set as stream source
-    d3dDevice->CreateVertexBuffer(sizeof(TLVERTEX) * 4, NULL, D3DFVF_TLVERTEX, D3DPOOL_MANAGED,
-                                  &vertexBuffer, NULL);
-    d3dDevice->SetStreamSource (0, vertexBuffer, 0, sizeof(TLVERTEX));
+    //Setup the quad
+    SetupQuad ();
 
-    //Setup rendering states
+    //Set render states
     d3dDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
     d3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
     d3dDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
     d3dDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
     d3dDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
+}
 
-    //Successfully initalized Direct3D
-    return TRUE;
+
+//Setup the quad
+void SetupQuad ()
+{
+    TLVERTEX* vertices = NULL;
+    vertexBuffer->Lock(0, 4 * sizeof(TLVERTEX), (VOID**)&vertices, 0);
+
+    //Setup vertices
+    vertices[0].colour = 0xffffffff;
+    vertices[0].x = 0.0f;
+    vertices[0].y = 0.0f;
+    vertices[0].z = 1.0f;
+    vertices[0].u = 0.0f;
+    vertices[0].v = 0.0f;
+
+    vertices[1].colour = 0xffffffff;
+    vertices[1].x = 1.0f;
+    vertices[1].y = 0.0f;
+    vertices[1].z = 1.0f;
+    vertices[1].u = 1.0f;
+    vertices[1].v = 0.0f;
+
+    vertices[2].colour = 0xffffffff;
+    vertices[2].x = 1.0f;
+    vertices[2].y = -1.0f;
+    vertices[2].z = 1.0f;
+    vertices[2].u = 1.0f;
+    vertices[2].v = 1.0f;
+
+    vertices[3].colour = 0xffffffff;
+    vertices[3].x = 0.0f;
+    vertices[3].y = -1.0f;
+    vertices[3].z = 1.0f;
+    vertices[3].u = 0.0f;
+    vertices[3].v = 1.0f;
+
+    vertexBuffer->Unlock();
 }
 
 
 //Close Direct3D
 int CloseD3D()
 {
+    //Clear stream source
+    d3dDevice->SetStreamSource (0, NULL, 0, 0);
+    
     //Release vertex buffer
     if (vertexBuffer)
         vertexBuffer->Release ();
+
+    //Release batching buffers
+    if (vertexBatchBuffer)
+        vertexBatchBuffer->Release ();
+    if (indexBatchBuffer)
+        indexBatchBuffer->Release ();
 
     //Release device
     if (d3dDevice)
@@ -145,7 +245,8 @@ int CloseD3D()
     //Release d3d object
     if (d3d)
         d3d->Release();
-
+	if(m_font)
+		m_font->Release();
     //Successfully closed Direct3D
     return TRUE;
 }
@@ -186,209 +287,196 @@ IDirect3DTexture9 *LoadTexture(char *fileName)
     return d3dTexture;
 }
 
-
-//Draw a textured quad on the back-buffer
-void BlitD3D (IDirect3DTexture9 *texture, RECT *rDest, D3DCOLOR vertexColour, float rotate)
+void DrawString(char * text, int x, int y, D3DCOLOR fontColor)
 {
-	TLVERTEX* vertices;
 
-	//Lock the vertex buffer
-	vertexBuffer->Lock(0, 0, (void **)&vertices, NULL);
+	// Create a colour for the text - in this case blue
+	//D3DCOLOR fontColor = D3DCOLOR_ARGB(255,0,0,255);    
 
-	//Setup vertices
-	//A -0.5f modifier is applied to vertex coordinates to match texture and screen coords
-	//Some drivers may compensate for this automatically, but on others texture alignment errors are introduced
-	//More information on this can be found in the Direct3D 9 documentation
-	vertices[0].colour = vertexColour;
-	vertices[0].x = (float) rDest->left - 0.5f;
-	vertices[0].y = (float) rDest->top - 0.5f;
-	vertices[0].z = 0.0f;
-	vertices[0].rhw = 1.0f;
-	vertices[0].u = 0.0f;
-	vertices[0].v = 0.0f;
+	// Create a rectangle to indicate where on the screen it should be drawn
+	RECT rct;
+	rct.left=x;
+	rct.top=y;
+	rct.right=300;
+	rct.bottom=200;
 
-	vertices[1].colour = vertexColour;
-	vertices[1].x = (float) rDest->right - 0.5f;
-	vertices[1].y = (float) rDest->top - 0.5f;
-	vertices[1].z = 0.0f;
-	vertices[1].rhw = 1.0f;
-	vertices[1].u = 1.0f;
-	vertices[1].v = 0.0f;
+	// Draw some text 
+	//m_font->s
+	m_font->DrawText(NULL, text, -1, &rct, 0, fontColor );
+	//m_font->
+}
 
-	vertices[2].colour = vertexColour;
-	vertices[2].x = (float) rDest->right - 0.5f;
-	vertices[2].y = (float) rDest->bottom - 0.5f;
-	vertices[2].z = 0.0f;
-	vertices[2].rhw = 1.0f;
-	vertices[2].u = 1.0f;
-	vertices[2].v = 1.0f;
+//Draw a textured quad on the backbuffer
+void BlitD3D(IDirect3DTexture9* texture, RECT* rDest, float rotate)
+{
+    float X;
+    float Y;
+    D3DXMATRIX matTranslation;
+    D3DXMATRIX matScaling;
+    D3DXMATRIX matTransform;
+    
+    //Get coordinates
+    X = rDest->left - (float)(d3dPresent.BackBufferWidth) / 2;
+    Y = -rDest->top + (float)(d3dPresent.BackBufferHeight) / 2; 
 
-	vertices[3].colour = vertexColour;
-	vertices[3].x = (float) rDest->left - 0.5f;
-	vertices[3].y = (float) rDest->bottom - 0.5f;
-	vertices[3].z = 0.0f;
-	vertices[3].rhw = 1.0f;
-	vertices[3].u = 0.0f;
-	vertices[3].v = 1.0f;
+    //Setup translation and scaling matrices
+    D3DXMatrixScaling (&matScaling, (float)(rDest->right - rDest->left),
+        (float)(rDest->bottom - rDest->top), 1.0f);
+    D3DXMatrixTranslation (&matTranslation, X, Y, 0.0f);
+    matTransform = matScaling * matTranslation;
 
-  ////Handle rotation
-  //if (rotate != 0)
-  //{
-  //    RECT rOrigin;
-  //    float centerX, centerY;
+    //Check if quad is rotated
+    if (rotate)
+    {
+        D3DXMATRIX matRotate;
 
-  //    //Find center of destination rectangle
-  //    centerX = (float)(rDest->left + rDest->right) / 2;
-  //    centerY = (float)(rDest->top + rDest->bottom) / 2;
+        //Create rotation matrix about the z-axis
+        D3DXMatrixRotationZ (&matRotate, rotate);
 
-  //    //Translate destination rect to be centered on the origin
-  //    rOrigin.top = rDest->top - (int)(centerY);
-  //    rOrigin.bottom = rDest->bottom - (int)(centerY);
-  //    rOrigin.left = rDest->left - (int)(centerX);
-  //    rOrigin.right = rDest->right - (int)(centerX);
+        //Multiply matrices together
+        matTransform *= matRotate;
+    }
 
-  //    //Rotate vertices about the origin
-  //    bufferVertices[index].x = rOrigin.left * cosf(rotate) -
-  //                              rOrigin.top * sinf(rotate);
-  //    bufferVertices[index].y = rOrigin.left * sinf(rotate) +
-  //                              rOrigin.top * cosf(rotate);
-
-  //    bufferVertices[index + 1].x = rOrigin.right * cosf(rotate) -
-  //                                  rOrigin.top * sinf(rotate);
-  //    bufferVertices[index + 1].y = rOrigin.right * sinf(rotate) +
-  //                                  rOrigin.top * cosf(rotate);
-
-  //    bufferVertices[index + 2].x = rOrigin.right * cosf(rotate) -
-  //                                  rOrigin.bottom * sinf(rotate);
-  //    bufferVertices[index + 2].y = rOrigin.right * sinf(rotate) +
-  //                                  rOrigin.bottom * cosf(rotate);
-
-  //    bufferVertices[index + 3].x = rOrigin.left * cosf(rotate) -
-  //                                  rOrigin.bottom * sinf(rotate);
-  //    bufferVertices[index + 3].y = rOrigin.left * sinf(rotate) +
-  //                                  rOrigin.bottom * cosf(rotate);
-
-  //    //Translate vertices to proper position
-  //    bufferVertices[index].x += centerX;
-  //    bufferVertices[index].y += centerY;
-  //    bufferVertices[index + 1].x += centerX;
-  //    bufferVertices[index + 1].y += centerY;
-  //    bufferVertices[index + 2].x += centerX;
-  //    bufferVertices[index + 2].y += centerY;
-  //    bufferVertices[index + 3].x += centerX;
-  //    bufferVertices[index + 3].y += centerY;
-  //}
-
-	//Unlock the vertex buffer
-	vertexBuffer->Unlock();
-
-	//Set texture
-	d3dDevice->SetTexture (0, texture);
-
-	//Draw image
-	d3dDevice->DrawPrimitive (D3DPT_TRIANGLEFAN, 0, 2);
+    //Draw the quad
+    d3dDevice->SetTransform (D3DTS_WORLD, &matTransform);
+    d3dDevice->SetTexture (0, texture);
+    d3dDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2);
 }
 
 
-//Draw a textured quad on the back-buffer
-void BlitExD3D (IDirect3DTexture9 *texture, RECT *rDest, D3DCOLOR *vertexColours /* -> D3DCOLOR[4] */,
-             float rotate)
+//Fill the index buffer
+void FillIndexBuffer ()
 {
-	TLVERTEX* vertices;
+    int index = 0;
+    short* indices = NULL;
 
-	//Lock the vertex buffer
-	vertexBuffer->Lock(0, 0, (void **)&vertices, NULL);
+    //Lock index buffer
+    indexBatchBuffer->Lock (0, BATCH_BUFFER_SIZE  * 3, (void**) &indices, 0);
 
-	//Setup vertices
-	//A -0.5f modifier is applied to vertex coordinates to match texture and screen coords
-	//Some drivers may compensate for this automatically, but on others texture alignment errors are introduced
-	//More information on this can be found in the Direct3D 9 documentation
-	vertices[0].colour = vertexColours[0];
-	vertices[0].x = (float) rDest->left - 0.5f;
-	vertices[0].y = (float) rDest->top - 0.5f;
-	vertices[0].z = 0.0f;
-	vertices[0].rhw = 1.0f;
-	vertices[0].u = 0.0f;
-	vertices[0].v = 0.0f;
+    for (int vertex = 0; vertex < BATCH_BUFFER_SIZE; vertex += 4)
+    {
+        indices[index] = vertex;
+        indices[index + 1] = vertex + 2;
+        indices[index + 2] = vertex + 3;
+        indices[index + 3] = vertex;
+        indices[index + 4] = vertex + 1;
+        indices[index + 5] = vertex + 2;
+        index += 6;
+    }
 
-	vertices[1].colour = vertexColours[1];
-	vertices[1].x = (float) rDest->right - 0.5f;
-	vertices[1].y = (float) rDest->top - 0.5f;
-	vertices[1].z = 0.0f;
-	vertices[1].rhw = 1.0f;
-	vertices[1].u = 1.0f;
-	vertices[1].v = 0.0f;
+    //Unlock index buffer
+    indexBatchBuffer->Unlock ();
+}
 
-	vertices[2].colour = vertexColours[2];
-	vertices[2].x = (float) rDest->right - 0.5f;
-	vertices[2].y = (float) rDest->bottom - 0.5f;
-	vertices[2].z = 0.0f;
-	vertices[2].rhw = 1.0f;
-	vertices[2].u = 1.0f;
-	vertices[2].v = 1.0f;
 
-	vertices[3].colour = vertexColours[3];
-	vertices[3].x = (float) rDest->left - 0.5f;
-	vertices[3].y = (float) rDest->bottom - 0.5f;
-	vertices[3].z = 0.0f;
-	vertices[3].rhw = 1.0f;
-	vertices[3].u = 0.0f;
-	vertices[3].v = 1.0f;
+//Get ready for batch drawing
+void BeginBatchDrawing (IDirect3DTexture9* texture)
+{
+    D3DXMATRIX matIdentity;
+    D3DSURFACE_DESC surfDesc;
 
-  //Handle rotation
-  //if (rotate != 0)
-  //{
-  //    RECT rOrigin;
-  //    float centerX, centerY;
+    //Lock the batching vertex buffer
+    numBatchVertices = 0;
+    vertexBatchBuffer->Lock (0, BATCH_BUFFER_SIZE * sizeof(TLVERTEX), (void **) &batchVertices, 0);
 
-  //    //Find center of destination rectangle
-  //    centerX = (float)(rDest->left + rDest->right) / 2;
-  //    centerY = (float)(rDest->top + rDest->bottom) / 2;
+    //Get texture dimensions
+    texture->GetLevelDesc (0, &surfDesc);
+    batchTexWidth = (float) surfDesc.Width;
+    batchTexHeight = (float) surfDesc.Height;
 
-  //    //Translate destination rect to be centered on the origin
-  //    rOrigin.top = rDest->top - (int)(centerY);
-  //    rOrigin.bottom = rDest->bottom - (int)(centerY);
-  //    rOrigin.left = rDest->left - (int)(centerX);
-  //    rOrigin.right = rDest->right - (int)(centerX);
+    //Set texture
+    d3dDevice->SetTexture (0, texture);
 
-  //    //Rotate vertices about the origin
-  //    bufferVertices[index].x = rOrigin.left * cosf(rotate) -
-  //                              rOrigin.top * sinf(rotate);
-  //    bufferVertices[index].y = rOrigin.left * sinf(rotate) +
-  //                              rOrigin.top * cosf(rotate);
+    //Set world matrix to an identity matrix
+    D3DXMatrixIdentity (&matIdentity);
+    d3dDevice->SetTransform (D3DTS_WORLD, &matIdentity);
 
-  //    bufferVertices[index + 1].x = rOrigin.right * cosf(rotate) -
-  //                                  rOrigin.top * sinf(rotate);
-  //    bufferVertices[index + 1].y = rOrigin.right * sinf(rotate) +
-  //                                  rOrigin.top * cosf(rotate);
+    //Set stream source to batch buffer
+    d3dDevice->SetStreamSource (0, vertexBatchBuffer, 0, sizeof(TLVERTEX));
+}
 
-  //    bufferVertices[index + 2].x = rOrigin.right * cosf(rotate) -
-  //                                  rOrigin.bottom * sinf(rotate);
-  //    bufferVertices[index + 2].y = rOrigin.right * sinf(rotate) +
-  //                                  rOrigin.bottom * cosf(rotate);
 
-  //    bufferVertices[index + 3].x = rOrigin.left * cosf(rotate) -
-  //                                  rOrigin.bottom * sinf(rotate);
-  //    bufferVertices[index + 3].y = rOrigin.left * sinf(rotate) +
-  //                                  rOrigin.bottom * cosf(rotate);
+//Add a quad to the batching buffer
+void AddQuad (RECT* rSource, RECT* rDest, D3DCOLOR colour)
+{
+    float X;
+    float Y;
+    float destWidth;
+    float destHeight;
 
-  //    //Translate vertices to proper position
-  //    bufferVertices[index].x += centerX;
-  //    bufferVertices[index].y += centerY;
-  //    bufferVertices[index + 1].x += centerX;
-  //    bufferVertices[index + 1].y += centerY;
-  //    bufferVertices[index + 2].x += centerX;
-  //    bufferVertices[index + 2].y += centerY;
-  //    bufferVertices[index + 3].x += centerX;
-  //    bufferVertices[index + 3].y += centerY;
-  //}
+    //Calculate coordinates
+    X = rDest->left - (float)(d3dPresent.BackBufferWidth) / 2;
+    Y = -rDest->top + (float)(d3dPresent.BackBufferHeight) / 2; 
+    destWidth = (float)(rDest->right - rDest->left);
+    destHeight = (float)(rDest->bottom - rDest->top);
 
-	//Unlock the vertex buffer
-	vertexBuffer->Unlock();
+    //Setup vertices in buffer
+    batchVertices[numBatchVertices].colour = colour;
+    batchVertices[numBatchVertices].x = X;
+    batchVertices[numBatchVertices].y = Y;
+    batchVertices[numBatchVertices].z = 1.0f;
+    batchVertices[numBatchVertices].u = rSource->left / batchTexWidth;
+    batchVertices[numBatchVertices].v = rSource->top / batchTexHeight;
+    
+    batchVertices[numBatchVertices + 1].colour = colour;
+    batchVertices[numBatchVertices + 1].x = X + destWidth;
+    batchVertices[numBatchVertices + 1].y = Y;
+    batchVertices[numBatchVertices + 1].z = 1.0f;
+    batchVertices[numBatchVertices + 1].u = rSource->right / batchTexWidth;
+    batchVertices[numBatchVertices + 1].v = rSource->top / batchTexHeight;
 
-	//Set texture
-	d3dDevice->SetTexture (0, texture);
+    batchVertices[numBatchVertices + 2].colour = colour;
+    batchVertices[numBatchVertices + 2].x = X + destWidth;
+    batchVertices[numBatchVertices + 2].y = Y - destHeight;
+    batchVertices[numBatchVertices + 2].z = 1.0f;
+    batchVertices[numBatchVertices + 2].u = rSource->right / batchTexWidth;
+    batchVertices[numBatchVertices + 2].v = rSource->bottom / batchTexHeight;
 
-	//Draw image
-	d3dDevice->DrawPrimitive (D3DPT_TRIANGLEFAN, 0, 2);
+    batchVertices[numBatchVertices + 3].colour = colour;
+    batchVertices[numBatchVertices + 3].x = X;
+    batchVertices[numBatchVertices + 3].y = Y - destHeight;
+    batchVertices[numBatchVertices + 3].z = 1.0f;
+    batchVertices[numBatchVertices + 3].u = rSource->left / batchTexWidth;
+    batchVertices[numBatchVertices + 3].v = rSource->bottom / batchTexHeight;
+
+    //Increase vertex count
+    numBatchVertices += 4;
+
+    //Flush buffer if it's full
+    if (numBatchVertices == BATCH_BUFFER_SIZE)
+    {
+        //Unlock vertex buffer
+        vertexBatchBuffer->Unlock();
+        
+        //Draw quads in the buffer
+        d3dDevice->DrawIndexedPrimitive (D3DPT_TRIANGLELIST, 0, 0, numBatchVertices, 0,
+                                        numBatchVertices / 2);        
+
+        //Reset vertex count        
+        numBatchVertices = 0;        
+
+        //Lock vertex buffer
+        vertexBatchBuffer->Lock (0, BATCH_BUFFER_SIZE * sizeof(TLVERTEX), (void **)
+                                 &batchVertices, 0);
+    }
+
+}
+
+
+//Finish batch drawing
+void EndBatchDrawing()
+{
+    //Unlock vertex buffer
+    vertexBatchBuffer->Unlock();
+
+    //Draw the quads in the buffer if it wasn't just flushed
+    if (numBatchVertices)
+        d3dDevice->DrawIndexedPrimitive (D3DPT_TRIANGLELIST, 0, 0, numBatchVertices, 0,
+                                         numBatchVertices / 2);
+
+    //Set stream source to regular buffer
+    d3dDevice->SetStreamSource (0, vertexBuffer, 0, sizeof(TLVERTEX));
+
+    //Reset vertex count        
+    numBatchVertices = 0;        
 }

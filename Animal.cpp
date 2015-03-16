@@ -1,5 +1,6 @@
 ﻿#include "Animal.h"
 #include "Constrain.h"
+#include "Utils.h"
 
 Animal::Animal(int type, int x, int y, int speed)
 {
@@ -7,6 +8,11 @@ Animal::Animal(int type, int x, int y, int speed)
 	setTypeAnimal(type);
 	setXY(x, y);
 	setSpeed(speed);
+	timeSeconds = Utils::getTimeToSeconds();
+}
+
+void Animal::onDestroy() {
+	super::onDestroy();
 }
 
 void Animal::setTypeAnimal(int typeAnimal) {
@@ -40,6 +46,15 @@ void Animal::onUpdate() {
 			}
 		}
 	}
+}
+
+bool Animal::onPorm() {
+	double timeSeconds = Utils::getTimeToSeconds();
+	if(timeSeconds - this->timeSeconds> 5) {
+		this->timeSeconds = timeSeconds;
+		return true;
+	}
+	return false;
 }
 
 void Animal::setSpeed(int speed) {

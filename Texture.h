@@ -12,9 +12,9 @@
 #include <string>
 #include <sstream>
 #include <list>
+#include "Graphics.h"
 using namespace std;
 
-#include "Graphics.h"
 
 //********************************
 //* Class Prototype              *
@@ -38,10 +38,10 @@ public:
     int CTexture::Close();
 
     //Draw texture with limited colour modulation
-    void CTexture::Blit (int X, int Y, D3DCOLOR vertexColour = 0xFFFFFFFF, float rotate = 0);
+    void CTexture::Blit (int X, int Y, float rotate = 0);
 
     //Draw texture with full colour modulation
-    void CTexture::BlitEx (int X, int Y, D3DCOLOR* vertexColours, float rotate);
+    //void CTexture::BlitEx (int X, int Y, D3DCOLOR* vertexColours, float rotate);
 
     //Release all unreferenced textures
     static int GarbageCollect();

@@ -86,10 +86,12 @@
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="ItemDrop.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="main2.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Screen.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animal.cpp" />
@@ -97,9 +99,11 @@
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="ItemDrop.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="main2.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Screen.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

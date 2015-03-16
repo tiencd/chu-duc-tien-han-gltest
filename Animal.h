@@ -10,6 +10,7 @@ class Animal : Object
 		int getTypeAnimal();
 		void onPaint();
 		void onUpdate();
+		void onDestroy();
 		void setXY(int x, int y);
 		void setX(int x);
 		void setY(int y);
@@ -18,10 +19,12 @@ class Animal : Object
 		void setTexture(char sFilename[], int width = 0, int height = 0);
 		int getWidth();
 		int getHeight();
+		bool onPorm();
 	private:
 		typedef Object super;
 		int typeAnimal;
 		bool isGoLeft;
 		int d;
+		double timeSeconds;
 };
 

@@ -29,10 +29,11 @@ int CTexture::Init (char sFilename[], int width, int height)
 
     //Convert filename to lowercase letters
     sFilename = strlwr(sFilename);
-
+	string strTmp = sFilename + to_string(width) + "-" + to_string(height);
+	char *str =(char *)strTmp.c_str();
     //Check if texture is in the loaded list
     for (itTextures = loadedTextures.begin (); itTextures != loadedTextures.end (); itTextures++)
-        if ((*itTextures)->sFilename == sFilename)
+        if ((*itTextures)->sFilename == str)
         {   
             //Get LOADEDTEXTURE object
             texture = *itTextures;  
@@ -62,7 +63,7 @@ int CTexture::Init (char sFilename[], int width, int height)
 
         //Set new texture parameters
         newTexture->referenceCount = 1;
-        newTexture->sFilename = sFilename;
+        newTexture->sFilename = str;
 		if(width == 0 && height == 0) {
 			newTexture->width = surfaceDesc.Width;
 			newTexture->height = surfaceDesc.Height;
@@ -161,7 +162,7 @@ int CTexture::CleanupTextures()
 
 
 //Draw texture with limited colour modulation
-void CTexture::Blit (int X, int Y, D3DCOLOR vertexColour, float rotate)
+void CTexture::Blit (int X, int Y, float rotate)
 {
     RECT rDest;
 
@@ -172,21 +173,21 @@ void CTexture::Blit (int X, int Y, D3DCOLOR vertexColour, float rotate)
     rDest.bottom = Y + texture->height;
 
     //Draw texture
-    BlitD3D (texture->texture, &rDest, vertexColour, rotate);
+    BlitD3D (texture->texture, &rDest, rotate);
 }
 
 
-//Draw texture with full colour modulation
-void CTexture::BlitEx (int X, int Y, D3DCOLOR* vertexColours, float rotate)
-{
-    RECT rDest;
-
-    //Setup destination rectangle
-    rDest.left = X;
-    rDest.right = X + texture->width;
-    rDest.top = Y;
-    rDest.bottom = Y + texture->height;
-
-    //Draw texture
-    BlitExD3D (texture->texture, &rDest, vertexColours, rotate);
-}
+////Draw texture with full colour modulation
+//void CTexture::BlitEx (int X, int Y, D3DCOLOR* vertexColours, float rotate)
+//{
+//    RECT rDest;
+//
+//    //Setup destination rectangle
+//    rDest.left = X;
+//    rDest.right = X + texture->width;
+//    rDest.top = Y;
+//    rDest.bottom = Y + texture->height;
+//
+//    //Draw texture
+//    BlitExD3D (texture->texture, &rDest, vertexColours, rotate);
+//}

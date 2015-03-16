@@ -7,6 +7,7 @@ class Object
 		Object();
 		void onPaint();
 		void onUpdate();
+		void onDestroy();
 		void setSpeed(int speed);
 		void setXY(int x, int y);
 		void setX(int x);

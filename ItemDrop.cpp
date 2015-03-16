@@ -1,10 +1,15 @@
 #include "ItemDrop.h"
 #include "Constrain.h"
 
-ItemDrop::ItemDrop(int type, int speed)
+ItemDrop::ItemDrop(int type, int x, int y, int speed)
 {
 	setTypeItem(type);
 	setSpeed(speed);
+	setXY(x - getWidth() / 2, y);
+}
+
+void ItemDrop::onDestroy() {
+	super::onDestroy();
 }
 
 void ItemDrop::setSpeed(int speed) {
@@ -14,7 +19,7 @@ void ItemDrop::setSpeed(int speed) {
 void ItemDrop::setTypeItem(int typeItem) {
 	string strTmp = imgItemDrop + to_string(typeItem) + ".png";
 	char *str =(char *)strTmp.c_str();
-	setTexture(str, 0, 0);
+	setTexture(str, 40, 45);
 }
 
 void ItemDrop::onPaint() {
@@ -23,7 +28,7 @@ void ItemDrop::onPaint() {
 
 void ItemDrop::onUpdate() {
 	if(y < SCREEN_HEIGHT) {
-		y -= speed;
+		y += speed;
 	}
 }
 

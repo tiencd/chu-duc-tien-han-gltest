@@ -8,6 +8,11 @@ void Object::onPaint() {
 	texture.Blit(x,y);
 }
 
+void Object::onDestroy() {
+	//(texture.texture)->texture -> Release();
+	//(texture.texture)->texture = NULL;
+}
+
 void Object::onUpdate() {}
 
 void Object::setTexture(char sFilename[], int width, int height) {
