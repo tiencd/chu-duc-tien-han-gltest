@@ -216,7 +216,8 @@ void GameScr::WindowProcedure (HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM l
 	case WM_LBUTTONUP:
 		//Get mouse coords
 		coords = MAKEPOINTS (lParam);
-		if(coords.x > (SCREEN_WIDTH - widthButton) && coords.x < SCREEN_WIDTH && coords.y < widthButton) {
+		if(coords.x > (SCREEN_WIDTH - widthButton) && coords.x < SCREEN_WIDTH &&
+			coords.y > 0 && coords.y < widthButton) {
 				if(gameState == isPause) {
 					onResume();
 				} else if(gameState == isPlaying) {
