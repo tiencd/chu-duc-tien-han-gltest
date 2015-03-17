@@ -32,9 +32,9 @@ void ItemDrop::onPaint() {
 }
 
 void ItemDrop::onUpdate() {
-	if(y <= SCREEN_HEIGHT) {
+	//if(y <= SCREEN_HEIGHT) {
 		y += speed;
-	}
+	//}
 }
 
 void ItemDrop::setTexture(char sFilename[], int width, int height) {

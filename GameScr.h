@@ -18,11 +18,14 @@ class GameScr : public Screen
 		void onStart();
 		void onPause();
 		void onResume();
+		void onRestart();
 		void onGameOver();
 		void onDestroy();
 		bool onCheckGameOver();
 	private:
+		int dem;
 		typedef Screen super;
+		void doChangeStateGame();
 		void onCheckEat();
 		Object basket;
 		list<Animal> listAnimal;

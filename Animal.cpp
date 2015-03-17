@@ -8,7 +8,7 @@ Animal::Animal(int type, int x, int y, int speed)
 	setTypeAnimal(type);
 	setXY(x, y);
 	setSpeed(speed);
-	timeSeconds = Utils::getTimeToSeconds();
+	timeSeconds = Utils::getTimeNow();
 }
 
 void Animal::onDestroy() {
@@ -49,8 +49,8 @@ void Animal::onUpdate() {
 }
 
 bool Animal::onPorm() {
-	double timeSeconds = Utils::getTimeToSeconds();
-	if(timeSeconds - this->timeSeconds >= TIME_ANIMAL_PORN) {
+	long timeSeconds = Utils::getTimeNow();
+	if(timeSeconds - this->timeSeconds >= TIME_ANIMAL_PORN * 1000) {
 		this->timeSeconds = timeSeconds;
 		return true;
 	}

@@ -4,9 +4,7 @@
 #include "Constrain.h"
 
 enum GAME_STATE {
-  isPlaying,
-  isPause,
-  isGameOver,
+	isFree,  isPlaying,  isPause,  isGameOver,
 };
 
 class Screen

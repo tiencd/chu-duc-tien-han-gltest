@@ -62,7 +62,7 @@ IDirect3DTexture9 *LoadTexture(char *fileName);
 //Draw Retangle
 void DrawRetangle(int x, int y, int w, int h, D3DCOLOR color);
 
-//Draw text
+//Draw text font size = 28 - bold
 void DrawString(char *text, int x, int y, int w, int h, D3DCOLOR fontColor);
 
 //Draw a textured quad on the back-buffer

@@ -287,6 +287,7 @@ IDirect3DTexture9 *LoadTexture(char *fileName)
     return d3dTexture;
 }
 
+// Draw rectangle (dang bi sai)
 void DrawRetangle(int x, int y, int w, int h, D3DCOLOR color) {
 	D3DRECT rect = {x, y, x + w, y + h};
 	d3dDevice->Clear(0, &rect, D3DCLEAR_TARGET, color, 1.0f, 0);

@@ -25,6 +25,6 @@ class Animal : Object
 		int typeAnimal;
 		bool isGoLeft;
 		int d;
-		double timeSeconds;
+		long timeSeconds;
 };
 

@@ -8,6 +8,8 @@ GameScr::GameScr()
 
 int marginTop = 5, widthButton = 80, heightText = 20;
 void GameScr::onInit() {
+	dem = 0;
+	gameState = isFree;
 	level = 2;
 	texturePause.Init(imgPause, widthButton, widthButton);
 	texturePlay.Init(imgPlay, widthButton, widthButton);
@@ -26,7 +28,7 @@ void GameScr::onInit() {
 	listItemDrop.clear();
 	basket = Object();
 	basket.setTexture(imgBasket, 120, 100);
-	basket.setXY((SCREEN_WIDTH - basket.getWidth()) << 1, SCREEN_HEIGHT - basket.getHeight() - 40);
+	basket.setXY((SCREEN_WIDTH - basket.getWidth()) >> 1, SCREEN_HEIGHT - basket.getHeight() - 40);
 	addNewAnimal(rand()%TOTAL_TYPE_ANIMAL + 1);
 	addNewAnimal(rand()%TOTAL_TYPE_ANIMAL + 1);
 	addNewAnimal(rand()%TOTAL_TYPE_ANIMAL + 1);
@@ -35,11 +37,19 @@ void GameScr::onInit() {
 
 void GameScr::onPaint() {
 	// paint score
-	if(gameState == isPause || gameState == isGameOver) {
+	if(gameState == isPause || gameState == isGameOver || gameState == isFree) {
 		texturePlay.Blit(SCREEN_WIDTH - widthButton, 0);
-		if(gameState == isGameOver) {
-			DrawString("GAME OVER", 370, marginTop, 150, heightText, D3DCOLOR_ARGB(255,255,0,0));
+		dem++;
+		if(dem <= 30) {
+			if(gameState == isPause) {
+				DrawString("CONTINUE", 470, marginTop + 3, 150, heightText, D3DCOLOR_ARGB(255,255,0,0));
+			} else if(gameState == isGameOver) {
+				DrawString("PLAY AGAIN", 430, marginTop + 3, 150, heightText, D3DCOLOR_ARGB(255,255,0,0));
+			}else if(gameState == isFree) {
+				DrawString("Click to Start Game", 360, marginTop, 150, heightText, D3DCOLOR_ARGB(255,255,0,0));
+			}
 		}
+		if(dem >= 60) dem = 0;
 	} else if(gameState == isPlaying) {
 		texturePause.Blit(SCREEN_WIDTH - widthButton, 0);
 	}
@@ -57,6 +67,10 @@ void GameScr::onPaint() {
 	strTmp = to_string(scoreEatShit) + "";
 	char* sScore2 = (char *)strTmp.c_str();
 	DrawString(sScore2, 230, marginTop, 30, heightText, D3DCOLOR_ARGB(255,255,2,62));
+	DrawString("Level", 255, marginTop, 70, heightText, D3DCOLOR_ARGB(255,0,0,0));
+	strTmp = to_string(level-1) + "";
+	char* sScore3 = (char *)strTmp.c_str();
+	DrawString(sScore3, 320, marginTop, 50, heightText, D3DCOLOR_ARGB(255,50,2,255));
 
 	list<Animal>::iterator iter_name; // Khai báo con trỏ để duyệt
 	for (iter_name = listAnimal.begin(); iter_name != listAnimal.end(); iter_name++) {
@@ -90,19 +104,8 @@ void GameScr::onUpdate() {
 		list<ItemDrop>::iterator iter_name2; // Khai báo con trỏ để duyệt
 		for (iter_name2 = listItemDrop.begin(); iter_name2 != listItemDrop.end(); iter_name2++) {
 			(*iter_name2).onUpdate();
-			if((*iter_name2).getY() >= SCREEN_HEIGHT) {
-				(*iter_name2).onDestroy();
-				if((*iter_name2).getTypeItem() == ID_EGG_PNG) {
-					scoreDropEggs ++;
-				}
-				if(iter_name2 != --listItemDrop.end()) {
-					listItemDrop.erase(iter_name2++);
-				} else {
-					listItemDrop.erase(iter_name2);
-					break;
-				}
-			}
 		}
+		
 		onCheckEat();
 	}
 }
@@ -118,6 +121,22 @@ bool GameScr::onCheckGameOver() {
 
 void GameScr::onCheckEat() {
 	list<ItemDrop>::iterator iter_name2;
+	// xóa những vật chạy quá màn hình
+	for (iter_name2 = listItemDrop.begin(); iter_name2 != listItemDrop.end(); iter_name2++) {
+		if((*iter_name2).getY() >= SCREEN_HEIGHT) {
+			(*iter_name2).onDestroy();
+			if((*iter_name2).getTypeItem() == ID_EGG_PNG) {
+				scoreDropEggs ++;
+			}
+			if(iter_name2 != --listItemDrop.end()) {
+				listItemDrop.erase(iter_name2++);
+			} else {
+				listItemDrop.erase(iter_name2);
+				break;
+			}
+		}
+	}
+
 	for (iter_name2 = listItemDrop.begin(); iter_name2 != listItemDrop.end(); iter_name2++) {
 		int x0 = (*iter_name2).getX();
 		int y0 = (*iter_name2).getY();
@@ -186,9 +205,7 @@ void GameScr::WindowProcedure (HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM l
 			case VK_DOWN:
 				break;
 			case VK_SPACE:
-				if(gameState == isGameOver) {
-					onStart();
-				}
+				doChangeStateGame();
 				break;
 			}
 			break;
@@ -209,6 +226,8 @@ void GameScr::WindowProcedure (HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM l
 		//Get mouse coords
 		coords = MAKEPOINTS (lParam);
 		if(gameState == isGameOver) {
+			onRestart();
+		} else if(gameState == isFree) {
 			onStart();
 		}
 		break;	
@@ -218,13 +237,7 @@ void GameScr::WindowProcedure (HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM l
 		coords = MAKEPOINTS (lParam);
 		if(coords.x > (SCREEN_WIDTH - widthButton) && coords.x < SCREEN_WIDTH &&
 			coords.y > 0 && coords.y < widthButton) {
-				if(gameState == isPause) {
-					onResume();
-				} else if(gameState == isPlaying) {
-					onPause();
-				} else if(gameState == isGameOver) {
-					onStart();
-				}
+				doChangeStateGame();
 		}
 		break;
 
@@ -240,13 +253,30 @@ void GameScr::WindowProcedure (HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM l
 	}
 }
 
+void GameScr::doChangeStateGame() {
+	dem = 0;
+	if(gameState == isPause) {
+		onResume();
+	} else if(gameState == isPlaying) {
+		onPause();
+	} else if(gameState == isGameOver) {
+		onRestart();
+	} else if(gameState == isFree) {
+			onStart();
+	}
+}
+
 void GameScr::addNewAnimal(int type) {
 	Animal animal = Animal(type, rand() % 400, rand() % 100 + 30, rand() % 3 + 1);
 	listAnimal.push_back(animal);
 }
 
-void GameScr::onStart() {
+void GameScr::onRestart() {
 	onInit();
+	super::onStart();
+}
+
+void GameScr::onStart() {
 	super::onStart();
 }
 
@@ -260,7 +290,9 @@ void GameScr::onPause() {
 
 void GameScr::onGameOver() {
 	if(gameState != isGameOver) {
-		MessageBox(NULL, "Game over. De choi lai, ban chon bat ky vao man hinh hoac bam phim Space (phim cach)", "GameOver", MB_OK);
+		string strTmp = "Your score: " + to_string(scoreEat) + "\nPress the space key or on click the game screen to play again";
+		char * str = (char *)strTmp.c_str();
+		MessageBox(NULL, str, "Game over", MB_OK);
 		super::onGameOver();
 	}
 }

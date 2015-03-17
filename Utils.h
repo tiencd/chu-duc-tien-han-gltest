@@ -8,7 +8,7 @@ class Utils
 {
 	public:
 		Utils();
-		static double getTimeToSeconds();
+		static long getTimeNow();
 		static char* convertStringToCharArr(string str);
 };
 
