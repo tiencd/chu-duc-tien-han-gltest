@@ -11,8 +11,8 @@ void Screen::WindowProcedure (HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lP
 }
 
 
-void Screen::onInit() {
-
+int Screen::onInit() {
+	return true;
 }
 
 void Screen::onPaint() {

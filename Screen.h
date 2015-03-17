@@ -11,7 +11,7 @@ class Screen
 {
 	public:
 		Screen();
-		virtual void onInit();
+		virtual int onInit();
 		virtual void onPaint();
 		virtual void onUpdate();
 		virtual void onStart();

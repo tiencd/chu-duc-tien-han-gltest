@@ -11,7 +11,7 @@ class GameScr : public Screen
 	public:
 		GameScr(void);
 		void WindowProcedure (HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam);
-		void onInit();
+		int onInit();
 		void addNewAnimal(int type);
 		void onPaint();
 		void onUpdate();

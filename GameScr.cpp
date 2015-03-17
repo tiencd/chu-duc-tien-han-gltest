@@ -7,19 +7,23 @@ GameScr::GameScr()
 }
 
 int marginTop = 5, widthButton = 80, heightText = 20;
-void GameScr::onInit() {
+int GameScr::onInit() {
 	dem = 0;
 	gameState = isFree;
 	level = 2;
-	texturePause.Init(imgPause, widthButton, widthButton);
-	texturePlay.Init(imgPlay, widthButton, widthButton);
+	if(!texturePause.Init(imgPause, widthButton, widthButton))
+		return false;
+	if(!texturePlay.Init(imgPlay, widthButton, widthButton))
+		return false;
 	string strTmp = imgItemDrop + to_string(ID_EGG_PNG) + ".png";
 	char *str =(char *)strTmp.c_str();
-	textureEgg.Init(str, 25, 27);
+	if(!textureEgg.Init(str, 25, 27))
+		return false;
 
 	strTmp = imgItemDrop + to_string(ID_SHIT_PNG) + ".png";
 	char *str1 =(char *)strTmp.c_str();
-	textureShit.Init(str1, 30, 30);
+	if(!textureShit.Init(str1, 30, 30))
+		return false;
 
 	scoreEat = 0;
 	scoreDropEggs = 0;
@@ -33,6 +37,7 @@ void GameScr::onInit() {
 	addNewAnimal(rand()%TOTAL_TYPE_ANIMAL + 1);
 	addNewAnimal(rand()%TOTAL_TYPE_ANIMAL + 1);
 	addNewAnimal(rand()%TOTAL_TYPE_ANIMAL + 1);
+	return true;
 }
 
 void GameScr::onPaint() {
