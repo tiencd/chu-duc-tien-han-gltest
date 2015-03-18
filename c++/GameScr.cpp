@@ -23,7 +23,8 @@ int GameScr::onInit() {
 	for (int i = 1; i <= TOTAL_TYPE_ANIMAL; i++) {
 		string strTmp = imgAddAnimal + to_string(i) + ".png";
 		char *str =(char *)strTmp.c_str();
-    	textureAddAnimal[i-1].Init(str, heightImageAddAnimal1, heightImageAddAnimal1);
+    	if(!textureAddAnimal[i-1].Init(str, heightImageAddAnimal1, heightImageAddAnimal1))
+			return FALSE;
 	}
 	if(!textureBg.Init(imgBg, 0, 0))
 		return FALSE;
@@ -160,7 +161,7 @@ void GameScr::onCheckEat() {
 	for (iter_name2 = listItemDrop.begin(); iter_name2 != listItemDrop.end(); iter_name2++) {
 		if((*iter_name2).getY() >= SCREEN_HEIGHT) {
 			(*iter_name2).onDestroy();
-			if((*iter_name2).getTypeItem() == ID_EGG_PNG) {
+			if((*iter_name2).getType() == ID_EGG_PNG) {
 				scoreDropEggs ++;
 			}
 			if(iter_name2 != --listItemDrop.end()) {
@@ -183,7 +184,7 @@ void GameScr::onCheckEat() {
 		int h1 = basket.getHeight();
 		if(x0 + w0> x1 + 20 && x0 + 40 < x1 + w1 && y0 + h0 > y1 + 40 && y0 + 60 < y1 + h1) {
 			// la trứng thì cộng điểm
-			if((*iter_name2).getTypeItem() == ID_EGG_PNG) {
+			if((*iter_name2).getType() == ID_EGG_PNG) {
 				scoreEat ++;
 				if(scoreEat % NUM_EGG_EAT_NEXT_LEVEL == 0) {
 					level++;

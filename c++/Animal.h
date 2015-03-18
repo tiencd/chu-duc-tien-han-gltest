@@ -1,12 +1,12 @@
 #pragma once
 #include "Object.h"
 
-class Animal : Object
+class Animal : public Object
 {
 	public:
 		Animal(int type, int x, int y);
-		void setTypeAnimal(int type);
-		int getTypeAnimal();
+		void setType(int type);
+		int getType();
 		void onPaint();
 		void onUpdate();
 		void onDestroy();

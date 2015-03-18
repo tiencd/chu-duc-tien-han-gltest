@@ -3,7 +3,7 @@
 
 ItemDrop::ItemDrop(int type, int x, int y, int speed)
 {
-	setTypeItem(type);
+	setType(type);
 	setSpeed(speed);
 	setXY(x - getWidth() / 2, y);
 }
@@ -16,14 +16,14 @@ void ItemDrop::setSpeed(int speed) {
 	this->speed = speed;
 }
 
-void ItemDrop::setTypeItem(int typeItem) {
+void ItemDrop::setType(int typeItem) {
 	string strTmp = imgItemDrop + to_string(typeItem) + ".png";
 	char *str =(char *)strTmp.c_str();
 	this->typeItem = typeItem;
 	setTexture(str, 40, 45);
 }
 
-int ItemDrop::getTypeItem() {
+int ItemDrop::getType() {
 	return typeItem;
 }
 

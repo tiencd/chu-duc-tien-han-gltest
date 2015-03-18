@@ -6,7 +6,7 @@ Animal::Animal(int type, int x, int y)
 {
 	isGoUp = rand()%2;
 	isGoLeft = rand()%2;
-	setTypeAnimal(type);
+	setType(type);
 	setXY(x, y);
 	speed = rand() % 4;
 	speedUp = rand() % 3;
@@ -17,7 +17,7 @@ void Animal::onDestroy() {
 	super::onDestroy();
 }
 
-void Animal::setTypeAnimal(int typeAnimal) {
+void Animal::setType(int typeAnimal) {
 	string strTmp = imgAnimal + to_string(typeAnimal) + ".png";
 	char *str =(char *)strTmp.c_str();
 	setTexture(str, 0, 0);

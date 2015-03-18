@@ -5,8 +5,8 @@ class ItemDrop : public Object
 	public:
 		ItemDrop(int type, int x, int y, int speed);
 		void setSpeed(int speed);
-		void setTypeItem(int type);
-		int getTypeItem();
+		void setType(int type);
+		int getType();
 		void onPaint();
 		void onUpdate();
 		void onDestroy();
